@@ -55,8 +55,8 @@ A claim in a README is not evidence that the code does it. Do not use real funds
 
 ### Package
 
-- **M13. Name.** `name`, with or without an `@scope/` prefix, matches what the CLI generates: `wdk-wallet-<chain>[-<variant>]`, `wdk-protocol-<swap|bridge|lending>-<name>-<chain>`, or `wdk-protocol-<fiat|swidge|sda>-<name>`. `npm view @tetherto/<name without scope> version` returns 404, because official package names are reserved. If the package is already published, `npm view <name> maintainers` lists the maintainers for the user to confirm.
-- **M14. Files.** `find . -path ./node_modules -prune -o -name '*{{*' -print` finds nothing. A match means the project was generated on Windows by `create-wdk-module` 1.0.0-beta.4 or earlier; regenerate it with a newer version.
+- **M13. Name.** `name`, with or without an `@scope/` prefix, matches what the CLI generates: `wdk-wallet-<chain>[-<variant>]`, `wdk-protocol-<swap|bridge|lending>-<name>-<chain>`, or `wdk-protocol-<fiat|swidge|sda>-<name>`. `npm view @tetherto/<name without scope> version` returns 404, because official package names are reserved, unless the module is that `@tetherto` package. If the package is already published, `npm view <name> maintainers` lists the maintainers for the user to confirm.
+- **M14. Files.** `find . -path ./node_modules -prune -o -name '*{{*' -print` finds nothing. A match means the project was generated on Windows by `create-wdk-module` 1.0.0-beta.4 or earlier; regenerate it on macOS or Linux, or with a release newer than 1.0.0-beta.4.
 - **M15. Lint and types.** `npm run lint` passes. Each public method, typedef, and class in `src/` has a matching declaration in `types/`, with the same parameters and return type (`wdk-review-jsdocs` R23). Do not run `build:types` (TD1). Note what `standard.ignore` leaves out of lint.
 - **M16. Dependencies.** Every entry in `dependencies` is imported and used by `src/`, `types/`, `index.js`, or `bare.js`. Nothing they import is only in `devDependencies`.
 - **M17. Packed install.** Pass when the install succeeds and the last command prints exactly one version:
@@ -72,9 +72,9 @@ A claim in a README is not evidence that the code does it. Do not use real funds
 ### Behavior
 
 - **M18. Tests.** `npm test` passes, and `grep -rnE "(test|it)\.todo" tests` finds nothing. Every public method has at least one passing test that calls it. Every error the module throws has a test that triggers it through the method that documents it. Jest reports a suite of only `todo` tests as passed, so a pass needs real tests.
-- **M19. Main flow.** A test runs the main flow through `@tetherto/wdk` and a real wallet package, with no mocks or sender stubs, on a fork at a known block. If the provider or chain can't run on a fork, a live run on a testnet or mainnet replaces it. A local chain where the test deploys the protocol's contracts counts as a fork. Give the block height, or the network and transaction hash, for the review request. The main flow is:
+- **M19. Main flow.** A test runs the main flow through `@tetherto/wdk` and a real wallet package, with no mocks or sender stubs, on a fork at a known block. If the provider or chain can't run on a fork, a live run on a testnet or mainnet replaces it. Give the block height, or the network and transaction hash, for the review request. The main flow is:
   - **wallet:** `registerWallet()`, `getAccount()`, read a balance, sign, and send one transfer;
-  - **protocol:** `registerWallet()`, `registerProtocol()`, get the protocol from the account, and run its main write, such as `swap()`, `bridge()`, or `supply()`.
+  - **protocol:** `registerWallet()`, `registerProtocol()`, get the protocol from the account, and run its main operation, such as `swap()`, `bridge()`, `supply()`, `buy()`, or `createDepositAddress()`.
 - **M20. Live coverage.** Live tests include at least one read or quote per supported network, and one complete write per flow kind on at least one network. The README lists any missing live coverage as a known gap, with the reason.
 - **M21. Disposal.** If the module holds extra state, tests dispose through both the account and the manager and assert the state is gone.
 - **M22. Bare runtime.** The M19 flow runs from the packed Bare entry with `bare <file>`, not through `npm test`, or the README documents an approved waiver. A test that only imports the entry does not count. If M19 has no flow, fail with "same cause as M19".
