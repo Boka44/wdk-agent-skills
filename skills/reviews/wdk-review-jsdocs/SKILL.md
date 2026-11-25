@@ -351,15 +351,12 @@ If the implementation can `return null`, the `@returns` type must explicitly inc
 
 ### R17. Use `@throws` for error conditions — one tag per distinct condition
 
-Document errors with `@throws`. Use the specific custom error class, not generic `Error`. Give each distinct failure condition its own `@throws` tag with its own class — never merge conditions into one generic tag.
+Document errors with `@throws`, stating the condition each one is thrown under. Give each distinct failure condition its own `@throws` tag — never merge conditions into one tag.
 
 ```javascript
-@throws {Error} If the configuration is invalid.                                    // wrong
-@throws {ConfigurationError} If the configuration has missing required fields.      // correct
-
-@throws {Error} If no signer exists with that name or the signer doesn't support derivation.   // wrong — merged
+@throws {NoSuchElementError} If no signer exists with that name or the signer doesn't support derivation.   // wrong — merged
 @throws {NoSuchElementError} If a signer name is given but no signer exists with that name.      // correct
-@throws {SignerError} If the signer doesn't support account derivation.             // correct
+@throws {InvalidSignerError} If the signer doesn't support account derivation.      // correct
 ```
 
 ---
@@ -385,7 +382,7 @@ export default class IElectrumClient {
    * @abstract
    * @returns {Promise<void>}
    */
-  async connect () { throw new Error('Not implemented') }
+  async connect () { throw new NotImplementedError('connect()') }
 }
 ```
 
@@ -678,5 +675,3 @@ If methods no longer accept a type, marking the old type `@deprecated` doesn't a
 6. **Type annotations** — canonical type syntax (R12); precision ladder (R13); SDK types preferred (R14, R15); discriminated unions (R20); typedef for structured returns (R22); typedef for inline `@type` on properties (R25); `undefined` not `null` for cached props (R26); `Pick<Config>` not `Partial<Config>` (R31); flexible numeric/chain-id inputs (R33); brackets vs `| undefined` on positional params (R34).
 7. **Completeness** — meaningful, behaviorally accurate descriptions on every documented field (R28); concise, purposeful descriptions (R32); `| null` when applicable (R16); one `@throws` per condition (R17); `@see` for docs (R18).
 8. **Naming** — no impl-detail prefixes (R29); SDK-aligned casing (R30); overload-specific param names (R27).
-
-> The `.d.ts` maintenance rules (TD1–TD9) live in the companion skill **wdk-review-dts**; run it whenever a change touches `types/`.

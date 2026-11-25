@@ -194,7 +194,7 @@ Narrow the `body` field to the types it actually accepts.
 
 ### C005: Avoid defensive programming
 
-Defensive programming means checking that a method's pre-conditions hold before proceeding. The only pre-conditions WDK uses are the **types of a method's arguments**, and you should always assume those are correct — the generated `.d.ts` declarations together with the consumer's type checker already report type errors. Runtime null/type guards on already-typed parameters are redundant; do not write them.
+Defensive programming means checking that a method's pre-conditions hold before proceeding. The only pre-conditions WDK uses are the **types of a method's arguments**, and you should always assume those are correct — the generated `.d.ts` declarations together with the consumer's type checker already report type errors. Runtime null/type guards on already-typed parameters are redundant; do not write them. Checking a condition the method's `@throws` declares (for example, that a string is a valid address) is not defensive programming: the contract requires it.
 
 #### Example
 
