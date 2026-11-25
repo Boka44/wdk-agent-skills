@@ -7,7 +7,7 @@ argument-hint: "[project types/ directory or root]"
 
 # WDK .d.ts Maintenance Review
 
-You are reviewing the generated `.d.ts` type definitions of a WDK module. Apply the rules below. The rules are repository-agnostic — no WDK module is a "golden reference"; apply every rule to every module equally, and if existing declarations conflict with a rule, the declaration is the candidate for change, not the rule. Type *accuracy* itself (runtime types matching the `.d.ts`) is rule R23 in the companion skill **wdk-review-jsdocs**.
+You are reviewing the generated `.d.ts` type definitions of a WDK module. Apply the rules below. The rules are repository-agnostic — no WDK module is a "golden reference"; apply every rule to every module equally, and if existing declarations conflict with a rule, the declaration is the candidate for change, not the rule.
 
 For each violation found, report:
 1. **Rule violated** (e.g., TD1, TD2, etc.)

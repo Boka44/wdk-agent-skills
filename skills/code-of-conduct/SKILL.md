@@ -1,6 +1,6 @@
 ---
 name: code-of-conduct
-description: Code of conduct that contributors — including AI coding assistants — MUST follow when writing, modifying, or reviewing code for any Tether Wallet Development Kit (WDK) module (wallets, protocols, core). Covers project workflow (atomic single-feature pull requests, design-before-implementation specs), code quality (avoid code smells, never violate S.O.L.I.D. principles, document every public/protected component, use narrow types, avoid defensive programming, mark every thrown error with @throws), and testing (arrange-act-assert, test only the public API, assert real values not patterns, define jest mocks at the top level, mock all external-service dependencies).
+description: Code of conduct that contributors — including AI coding assistants — MUST follow when writing, modifying, or reviewing code for any Tether Wallet Development Kit (WDK) module (wallets, protocols, core). Covers project workflow (atomic single-feature pull requests, design-before-implementation specs), code quality (avoid code smells, never violate S.O.L.I.D. principles, document every public/protected component, use narrow types, avoid defensive programming), and testing (arrange-act-assert, test only the public API, assert real values not patterns, define jest mocks at the top level, mock all external-service dependencies).
 ---
 
 # WDK Code of Conduct
@@ -23,7 +23,6 @@ Rules are grouped by prefix: **P** = project & workflow, **C** = code, **T** = t
 | [C003](#c003-provide-proper-documentation-for-all-public-and-protected-components) | Provide proper documentation for all public and protected components |
 | [C004](#c004-use-narrow-types-for-properties-and-methods) | Use narrow types for properties and methods |
 | [C005](#c005-avoid-defensive-programming) | Avoid defensive programming |
-| [C006](#c006-always-mark-errors-that-a-method-can-throw) | Always mark errors that a method can throw |
 | [T001](#t001-follow-the-arrange-act-assert-pattern) | Follow the arrange, act, assert pattern |
 | [T002](#t002-test-only-components-that-are-part-of-the-public-api) | Test only components that are part of the public API |
 | [T003](#t003-always-test-against-real-values-not-properties) | Always test against real values, not properties |
@@ -98,31 +97,6 @@ export default class WalletManagerEvm extends WalletManager {
 
 Know all five **S.O.L.I.D.** principles and make sure your code violates none of them: [Single Responsibility](https://www.brainstobytes.com/the-single-responsibility-principle/), [Open–Closed](https://www.brainstobytes.com/the-open-closed-principle/), [Liskov Substitution](https://www.brainstobytes.com/the-liskov-substitution-principle/), [Interface Segregation](https://www.brainstobytes.com/interface-segregation-principle/), and [Dependency Injection](https://www.brainstobytes.com/dependency-injection/).
 
-#### Example
-
-Adding a stricter post-condition to an override breaks the Liskov Substitution Principle.
-
-```javascript
-export default class WalletAccountReadOnlyEvm extends WalletAccountReadOnly {
-    /**
-     * Returns the account balance for a specific token.
-     *
-     * @param {string} tokenAddress - The smart contract address of the token.
-     * @returns {Promise<bigint>} The token balance (in base unit).
-     * // Bad: the following post-condition breaks the liskov substitution principle, since the super-type of
-     * the 'WalletAccountReadOnlyEvm' class doesn't define the 'getTokenBalance' to throw when the account
-     * has no funds. For this reason, code that depends on the 'WalletAccountReadOnly' abstract class will
-     * not expect the method to throw and will not handle such case. So, this invalid post-condition could
-     * lead to unsafe behavior when using instances of the 'WalletAccountReadOnlyEvm' class on code that
-     * depends on 'WalletAccountReadOnly'. For more insights, read the reference above.
-     * @throws {Error} If the account has no balance for the given token.
-     */
-    async getTokenBalance (tokenAddress) {
-        [...]
-    }
-}
-```
-
 ---
 
 ### C003: Provide proper documentation for all public and protected components
@@ -194,7 +168,7 @@ Narrow the `body` field to the types it actually accepts.
 
 ### C005: Avoid defensive programming
 
-Defensive programming means checking that a method's pre-conditions hold before proceeding. The only pre-conditions WDK uses are the **types of a method's arguments**, and you should always assume those are correct — the generated `.d.ts` declarations together with the consumer's type checker already report type errors. Runtime null/type guards on already-typed parameters are redundant; do not write them.
+Defensive programming means checking that a method's pre-conditions hold before proceeding. The only pre-conditions WDK uses are the **types of a method's arguments**, and you should always assume those are correct — the generated `.d.ts` declarations together with the consumer's type checker already report type errors. Runtime null/type guards on already-typed parameters are redundant; do not write them. Checking a condition the method's `@throws` declares (for example, that a string is a valid address) is not defensive programming: the contract requires it.
 
 #### Example
 
@@ -217,29 +191,6 @@ export default class WalletAccountReadOnlyTon {
             throw new Error('Invalid value for the token address.')
         }
 
-        [...]
-    }
-}
-```
-
----
-
-### C006: Always mark errors that a method can throw
-
-Document **every** error a method might throw in its documentation, using the `@throws` tag to state both the **error type** and the **condition** under which it is thrown. This lets consumers know which errors to expect and exactly when.
-
-#### Example
-
-```javascript
-export default class WalletAccountEvm extends WalletAccountReadOnlyEvm {
-    /**
-     * Approves a specific amount of tokens to a spender.
-     *
-     * @param {ApproveOptions} options - The approve options.
-     * @returns {Promise<TransactionResult>} The transaction's result.
-     * @throws {Error} If trying to approve usdts on ethereum with allowance not equal to zero (due to the usdt allowance reset requirement).
-     */
-    async approve (options) {
         [...]
     }
 }
@@ -404,7 +355,6 @@ Before considering any WDK code change complete, confirm:
 - [ ] Every public and protected component has a meaningful description and types (C003)
 - [ ] Narrowest fitting types used; `unknown` over `any`, `Record<string, unknown>` over `Object` (C004)
 - [ ] No defensive checks on already-typed parameters (C005)
-- [ ] Every throwable method documents each error with `@throws` (type + condition) (C006)
 
 **Testing**
 - [ ] Tests follow Arrange → Act → Assert (T001)
