@@ -111,28 +111,34 @@ Drop `@private`; keep the description and `@type`.
 
 ---
 
-### R6. Private members get only `/** @private */` — no full JSDoc
+### R6. Private members are marked `@private`; full documentation is optional but encouraged
 
-Private methods and properties (prefixed with `_`) get a minimal block. Don't document parameters, return types, descriptions, or `@type` for private members.
+Private methods and properties (prefixed with `_`) must carry at least `/** @private */`. Full documentation (description, `@param`, `@returns`, `@type`) is not required, but it is a significant readability improvement — especially for complex components — so never flag it as a violation. When a private member is documented, the block must follow the same rules as public ones (R1, R3, R28, …).
 
-**Violation:**
+**Violation (missing `@private`):**
 ```javascript
-/**
- * Returns the fee estimator for the given bundler URL.
- * @private
- * @param {string} bundlerUrl - The bundler URL.
- * @returns {Promise<FeeEstimator>} The fee estimator.
- */
 async _getFeeEstimator (bundlerUrl) { ... }
 ```
 
-**Correct:**
+**Correct (minimal):**
 ```javascript
 /** @private */
 async _getFeeEstimator (bundlerUrl) { ... }
 ```
 
-Same for private properties: `/** @private */` only, nothing else. Internal (`@internal`) constants and properties likewise don't need full documentation. And never use company- or team-internal jargon (e.g., "Phase 1") anywhere in documentation — every term must make sense outside the organization.
+**Correct (documented):**
+```javascript
+/**
+ * Returns the fee estimator for the given bundler URL.
+ *
+ * @private
+ * @param {string} bundlerUrl - The bundler's URL.
+ * @returns {Promise<FeeEstimator>} The fee estimator configured for the bundler.
+ */
+async _getFeeEstimator (bundlerUrl) { ... }
+```
+
+Internal (`@internal`) constants and properties likewise don't need full documentation. And never use company- or team-internal jargon (e.g., "Phase 1") anywhere in documentation — every term must make sense outside the organization.
 
 ---
 
@@ -172,7 +178,7 @@ async _buildInitData (config) { ... }
 
 ### R8. Always provide full JSDoc on overridden methods
 
-Copy the parent's JSDoc on the override. Keep the superclass description and only append implementation-specific details after it (e.g., "Establishes the connection to the server. Blockbook is a stateless REST API, so clients don't need to call this method.") — never replace the original description. `tsc` needs JSDoc on the override for accurate `.d.ts` generation. Make documentation more blockchain-specific when possible — add `@example`, narrow return types, clarify behavior.
+Copy the parent's JSDoc on the override. Keep the superclass description and only append implementation-specific details after it (e.g., "Establishes the connection to the server. Blockbook is a stateless REST API, so clients don't need to call this method.") — never replace the original description. The override's JSDoc is what the hand-maintained `.d.ts` declarations must mirror (**wdk-review-dts** TD1). Make documentation more blockchain-specific when possible — add `@example`, narrow return types, clarify behavior.
 
 ```javascript
 /**
@@ -474,7 +480,7 @@ Boundaries of the named-typedef rule:
 ### R26. `undefined` vs `null` convention
 
 - **`undefined`** — uninitialized optional/cached properties, and absent optional values (pass `undefined`, never an empty `{}` placeholder).
-- **`null`** — lookup results when nothing is found (`T | null`, never `T | undefined`), and key-material properties cleared by `dispose()` (type them `Type | null` per the base-class disposal contract).
+- **`null`** — lookup results when nothing is found (`T | null`, never `T | undefined`) — unless the method's contract declares an error for that case (e.g., `@throws {NoSuchElementError}`), in which case it must throw, never return `null` (**wdk-review-errors** E5) — and key-material properties cleared by `dispose()` (type them `Type | null` per the base-class disposal contract).
 
 ```javascript
 /** @protected @type {SomeType | null} */
@@ -516,7 +522,7 @@ Descriptions must also be *behaviorally accurate*: state how multiple filter con
 
 If a default exists, include it per R4.
 
-For `@protected` methods (part of the extension surface — see AD5), this rule applies fully — protected ≈ public for documentation purposes. Private members under R6 are the only exception.
+For `@protected` methods (part of the public API — see code-of-conduct C003), this rule applies fully — protected ≈ public for documentation purposes. Private members are the only exception: they need no documentation beyond `@private` (R6), but if documented, this rule applies.
 
 **Violation (no description):**
 ```javascript
@@ -669,7 +675,7 @@ If methods no longer accept a type, marking the old type `@deprecated` doesn't a
 
 1. **JSDoc structure** — every block starts with a description (R1); `{Object}` not `{object}` (R2); no blank line before declaration (R21).
 2. **Tag formatting** — dash separators in `@param`/`@property` (R3); defaults in description text (R4).
-3. **Visibility** — `@private` only on class members (R5); private members get minimal JSDoc (R6); `@protected` has full annotation (R7).
+3. **Visibility** — `@private` only on class members (R5); private members carry `@private`, full docs optional (R6); `@protected` has full annotation (R7).
 4. **Inheritance** — overrides have full JSDoc (R8); `@implements` vs `@extends` (R9); `@abstract`/`@interface` (R19).
 5. **Imports** — `@typedef {import(...)}` not runtime imports (R10); short aliases not inline paths (R11); no unused imports (R24).
 6. **Type annotations** — canonical type syntax (R12); precision ladder (R13); SDK types preferred (R14, R15); discriminated unions (R20); typedef for structured returns (R22); typedef for inline `@type` on properties (R25); `undefined` not `null` for cached props (R26); `Pick<Config>` not `Partial<Config>` (R31); flexible numeric/chain-id inputs (R33); brackets vs `| undefined` on positional params (R34).

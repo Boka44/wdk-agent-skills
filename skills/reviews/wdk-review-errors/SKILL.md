@@ -38,7 +38,7 @@ All errors extend `WdkError`. Throwing a **sub-class** of a declared error satis
 | Module | Errors |
 |--------|--------|
 | `@tetherto/wdk-wallet` | `ValueError`, `NoSuchElementError`, `InvalidSignerError`, `InvalidTokenError`, `ProviderRequiredError`, `ProviderError` (with `ProviderErrorReason`), `TransactionError` (with `TransactionErrorReason`), `TransferError` (with `TransferErrorReason`), `MaximumFeeExceededError`, `TimeoutError`, `DisposalError`, `UnsupportedOperationError` |
-| `@tetherto/wdk-wallet/protocols` | `AccountRequiredError`, `ReadOnlyAccountRequiredError`, `SwapError`, `BridgeError`, `SupplyError`, `WithdrawError`, `BorrowError`, `RepayError`, `BuyError`, `SellError`, `SwidgeError`, `SdaError` |
+| `@tetherto/wdk-wallet/protocols` | `AccountRequiredError`, `ReadOnlyAccountRequiredError`, `SwapError` (with `SwapErrorReason`), `BridgeError` (with `BridgeErrorReason`), `SupplyError` (with `SupplyErrorReason`), `WithdrawError` (with `WithdrawErrorReason`), `BorrowError` (with `BorrowErrorReason`), `RepayError` (with `RepayErrorReason`), `BuyError` (with `BuyErrorReason`), `SellError` (with `SellErrorReason`), `SwidgeError` (with `SwidgeErrorReason`), `SdaError` (with `SdaErrorReason`) |
 | Special (see E6–E8) | `NotImplementedError`, `AssertionError` |
 
 This table is a snapshot — the installed `errors.js` files are authoritative.
@@ -86,7 +86,7 @@ async sendTransaction (tx) {
 }
 ```
 
-Always pass the original error as `cause` when translating, and always set `reason` on errors that require one (`ProviderError`, `TransactionError`, `TransferError`).
+Always pass the original error as `cause` when translating, and always set `reason` on every error class that takes one, using a value from its matching `<Name>ErrorReason` enum: `ProviderError`, `TransactionError`, and `TransferError` among the wallet errors, and every operation error among the protocol errors (`SwapError`, `BridgeError`, `SupplyError`, `WithdrawError`, `BorrowError`, `RepayError`, `BuyError`, `SellError`, `SwidgeError`, `SdaError`). The table above marks every error that takes a `reason`.
 
 ---
 
@@ -107,7 +107,7 @@ async quoteSwap (options) {
   try {
     return await this._sdk.quote(options)
   } catch (error) {
-    throw new SwapError(error.message)                          // blanket catch: every failure becomes SwapError, no cause
+    throw new SwapError(error.message)                          // blanket catch: every failure becomes SwapError, no reason, no cause
   }
 }
 ```
@@ -128,8 +128,11 @@ async quoteSwap (options) {
   try {
     return await this._sdk.quote(options)
   } catch (error) {
-    if (error instanceof SdkNoRouteError) {
-      throw new SwapError('No route found for the swap.', { cause: error })
+    if (error instanceof SdkInsufficientBalanceError) {
+      throw new SwapError('The account does not have enough tokens to perform the swap.', {
+        reason: SwapErrorReason.INSUFFICIENT_TOKEN_BALANCE,
+        cause: error
+      })
     }
 
     throw error
@@ -264,9 +267,9 @@ Generally we don't need assertion errors: question every new one.
 
 1. **Resolve contracts** — for each public method, locate its definition in the `@tetherto/wdk-wallet` interface or abstract class it implements/overrides and collect that method's `@throws` tags.
 2. **Thrown errors** — every `throw` in the method body (and every error propagating from internal helpers it calls) is a declared error or a sub-class of one; no generic `Error`, built-in, or undeclared `WdkError` (E1). Required `reason` and `cause` are set when translating.
-3. **External dependencies** — for each external call, list what it can throw; every error that can occur is translated into a declared error with selective matching and `cause` (E2); errors that cannot occur by construction are not handled (E3).
+3. **External dependencies** — for each external call, list what it can throw; every error that can occur is translated into a declared error with selective matching, `reason` (where the error takes one), and `cause` (E1, E2); errors that cannot occur by construction are not handled (E3).
 4. **Own `@throws`** — the method's `@throws` is a subset of the super-class contract (E1, E4) and lists every contract error the body can actually throw (E4).
 5. **Behavior preservation** — no declared error condition is replaced by a sentinel return value or silently ignored (E5).
 6. **Special errors** — `NotImplementedError` and `AssertionError` never appear in `@throws` (E6); `NotImplementedError` is thrown only by interface and abstract methods (E7); every `AssertionError` guards a genuine internal invariant (E8).
 
-> JSDoc formatting of `@throws` tags (one tag per condition, specific error class) is rule R17 in the companion skill **wdk-review-jsdocs**; exporting custom error classes from `index.js` and `types/` is rule TD5 in **wdk-review-dts**.
+> JSDoc formatting of `@throws` tags (one tag per distinct condition) is rule R17 in the companion skill **wdk-review-jsdocs**; exporting custom error classes from `index.js` and `types/` is rule TD5 in **wdk-review-dts**.

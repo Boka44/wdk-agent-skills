@@ -59,13 +59,13 @@ Custom error classes must be exported from `index.js` and have corresponding dec
 
 ### TD6. Exclude internal types from `types/` folder
 
-Types for internal modules (prefixed with `_`, inside `src/internal/`) must not appear in the public `types/` output. Use `tsconfig.json` exclusions or `@internal`.
+Types for internal modules (prefixed with `_`, inside `src/internal/`) must not appear in the public `types/` folder. Mark them `@internal` in JSDoc and never hand-write declarations for them (TD1).
 
 ---
 
 ### TD7. Interfaces use `interface` in `.d.ts`
 
-JSDoc `@interface` classes must generate `interface` declarations (not `class`) in `.d.ts`.
+JSDoc `@interface` classes must be declared as `interface` (not `class`) in `.d.ts`.
 
 ```typescript
 export class IElectrumClient { ... }            // wrong
@@ -76,7 +76,7 @@ export interface IElectrumClient { ... }        // correct
 
 ### TD8. Abstract classes use `abstract class` in `.d.ts`
 
-JSDoc `@abstract` classes must generate `abstract class` declarations.
+JSDoc `@abstract` classes must be declared as `abstract class` in `.d.ts`.
 
 ---
 
@@ -90,6 +90,6 @@ After resolving review feedback that touches JSDoc or type annotations, hand-edi
 
 1. **Never regenerate** — do not run `npm run build:types` (`tsc`). Hand-edit the affected `.d.ts` files so they reflect the JSDoc/type changes, touching only the declarations that actually changed, and commit them alongside the source changes (TD1, TD9).
 2. **Public types exported** — every new public `@typedef` appears in `types/index.d.ts` and is re-exported from `index.js`; parent-module types are re-exported from child modules; and custom error classes are exported from both `index.js` and `types/` (TD2–TD5).
-3. **Internal types excluded** — types for internal modules (prefixed with `_`, inside `src/internal/`) must never appear in the public `types/` output; enforce this with `tsconfig.json` exclusions or `@internal` (TD6).
-4. **Interface / abstract emission** — confirm `@interface` classes emit `interface` declarations (not `class`) and `@abstract` classes emit `abstract class` declarations in the `.d.ts` (TD7, TD8).
+3. **Internal types excluded** — types for internal modules (prefixed with `_`, inside `src/internal/`) must never appear in the public `types/` output; mark them `@internal` and never hand-write declarations for them (TD6).
+4. **Interface / abstract emission** — confirm `@interface` classes are declared as `interface` (not `class`) and `@abstract` classes as `abstract class` in the `.d.ts` (TD7, TD8).
 5. **Diff and audit** — diff the `types/` folder against its previous state and review every edit for correctness; treat every removed declaration as a possible public-API regression until you have confirmed the removal is intentional.
