@@ -271,5 +271,3 @@ Generally we don't need assertion errors: question every new one.
 4. **Own `@throws`** — the method's `@throws` is a subset of the super-class contract (E1, E4) and lists every contract error the body can actually throw (E4).
 5. **Behavior preservation** — no declared error condition is replaced by a sentinel return value or silently ignored (E5).
 6. **Special errors** — `NotImplementedError` and `AssertionError` never appear in `@throws` (E6); `NotImplementedError` is thrown only by interface and abstract methods (E7); every `AssertionError` guards a genuine internal invariant (E8).
-
-> JSDoc formatting of `@throws` tags (one tag per distinct condition) is rule R17 in the companion skill **wdk-review-jsdocs**; exporting custom error classes from `index.js` and `types/` is rule TD5 in **wdk-review-dts**.
